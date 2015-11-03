@@ -1,0 +1,61 @@
+<?php
+
+function title_case_menu() {
+  $items['title_case'] = array(
+    'title' => 'Title Case Generator',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array ('title_case_form'),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['title_case_success_page'] = array(
+    'title' => 'Success',
+    'page callback' => 'title_case_success',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function title_case_form() {
+  $form['string_to_change'] = array(
+    '#title' => "String to Convert",
+    '#type' => 'textfield',
+    '#description' => t("Please enter a string to convert to title case"),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Convert',
+  );
+
+  return $form;
+}
+
+function title_case_form_submit($form, &$form_state) {
+  $recognize_designated_words = array("as", "in", "for", "from", "to", "at", "a","on", "the", "and", "an", "by", "of", "nor", "up", "but", "or", "this", "is");
+  $input_array_of_words = explode(" ", $form_state['values']['string_to_change']);
+  $output_titlecased = array();
+  foreach ($input_array_of_words as $word) {
+      $word_test ="";
+      if ($word[0] === "[") {
+          $word_test = substr($word, 1, (strlen($word) - 2));
+      } else {
+          $lower_case_word = strtolower($word);
+          if (in_array($lower_case_word, $recognize_designated_words) && $word != $input_array_of_words[0]) {
+          $word_test = lcfirst($lower_case_word);
+      } else {
+          $word_test = ucfirst($lower_case_word);
+          }
+      }
+      array_push($output_titlecased, $word_test);
+  }
+  $_SESSION['title_case_output'] = implode(" ", $output_titlecased);
+  $form_state['redirect'] = 'title_case_success_page';
+}
+
+function title_case_success() {
+  return $_SESSION['title_case_output'];
+}
